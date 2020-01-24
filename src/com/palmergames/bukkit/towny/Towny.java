@@ -43,7 +43,7 @@ import com.palmergames.bukkit.towny.permissions.VaultPermSource;
 import com.palmergames.bukkit.towny.regen.TownyRegenAPI;
 import com.palmergames.bukkit.towny.utils.PlayerCacheUtil;
 import com.palmergames.bukkit.towny.utils.SpawnUtil;
-import com.palmergames.bukkit.towny.war.flagwar.TownyWar;
+import com.palmergames.bukkit.towny.war.flagwar.FlagWar;
 import com.palmergames.bukkit.towny.war.flagwar.listeners.TownyWarBlockListener;
 import com.palmergames.bukkit.towny.war.flagwar.listeners.TownyWarCustomListener;
 import com.palmergames.bukkit.towny.war.flagwar.listeners.TownyWarEntityListener;
@@ -156,7 +156,7 @@ public class Towny extends JavaPlugin {
 
 			addMetricsCharts();
 
-			TownyWar.onEnable();
+			FlagWar.onEnable();
 
 			if (TownySettings.isTownyUpdating(getVersion())) {
 				update();
@@ -221,7 +221,7 @@ public class Towny extends JavaPlugin {
 		}
 
 		if (!error) {
-			TownyWar.onDisable();
+			FlagWar.onDisable();
 		}
 
 		if (TownyAPI.getInstance().isWarTime()) {
