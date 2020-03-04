@@ -1,57 +1,53 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.war.flagwar.events;
 
+import com.palmergames.bukkit.towny.war.flagwar.Cell;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
 
-import com.palmergames.bukkit.towny.war.flagwar.Cell;
-
-public class CellDefendedEvent extends Event implements Cancellable {
-
-	private static final HandlerList handlers = new HandlerList();
-	private boolean cancelled = false;
-	
-	@Override
-	public HandlerList getHandlers() {
-
-		return handlers;
-	}
-
-	public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-	//////////////////////////////
-
-	private Player player;
-	private Cell cell;
-
-	public CellDefendedEvent(Player player, Cell cell) {
-
-		super();
-		this.player = player;
-		this.cell = cell;
-	}
-
-	public Player getPlayer() {
-
-		return player;
-	}
-
-	public Cell getCell() {
-
-		return cell;
-	}
-	
-	@Override
-    public boolean isCancelled() {
-        return cancelled;
+public class CellDefendedEvent extends Event implements Cancellable
+{
+    private static final HandlerList handlers;
+    private boolean cancelled;
+    private Player player;
+    private Cell cell;
+    
+    public HandlerList getHandlers() {
+        return CellDefendedEvent.handlers;
     }
     
-	@Override
-    public void setCancelled(boolean cancel) {
+    public static HandlerList getHandlerList() {
+        return CellDefendedEvent.handlers;
+    }
+    
+    public CellDefendedEvent(final Player player, final Cell cell) {
+        this.cancelled = false;
+        this.player = player;
+        this.cell = cell;
+    }
+    
+    public Player getPlayer() {
+        return this.player;
+    }
+    
+    public Cell getCell() {
+        return this.cell;
+    }
+    
+    public boolean isCancelled() {
+        return this.cancelled;
+    }
+    
+    public void setCancelled(final boolean cancel) {
         this.cancelled = cancel;
+    }
+    
+    static {
+        handlers = new HandlerList();
     }
 }

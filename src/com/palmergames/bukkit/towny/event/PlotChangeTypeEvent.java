@@ -1,52 +1,53 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
+import org.bukkit.Bukkit;
 import com.palmergames.bukkit.towny.object.TownBlock;
 import com.palmergames.bukkit.towny.object.TownBlockType;
-import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-public class PlotChangeTypeEvent extends Event {
-    public static final HandlerList handlers = new HandlerList();
+public class PlotChangeTypeEvent extends Event
+{
+    public static final HandlerList handlers;
     private TownBlockType oldType;
     private TownBlockType newType;
     private TownBlock townBlock;
-
-    @Override
+    
     public HandlerList getHandlers() {
-        return handlers;
+        return PlotChangeTypeEvent.handlers;
     }
-
+    
     public static HandlerList getHandlerList() {
-        return handlers;
+        return PlotChangeTypeEvent.handlers;
     }
-
-    /**
-	 * Changes a plot's TownBlockType
-	 * 
-     * @param oldType- Old Type
-     * @param newType - New Type
-	 * @param townBlock - Plot to target
-     */
-    public PlotChangeTypeEvent(TownBlockType oldType, TownBlockType newType, TownBlock townBlock) {
-    	super(!Bukkit.getServer().isPrimaryThread());
+    
+    public PlotChangeTypeEvent(final TownBlockType oldType, final TownBlockType newType, final TownBlock townBlock) {
+        super(!Bukkit.getServer().isPrimaryThread());
         this.newType = newType;
         this.oldType = oldType;
         this.townBlock = townBlock;
     }
-
+    
     public TownBlockType getNewType() {
-        return newType;
+        return this.newType;
     }
-
+    
     public TownBlockType getOldType() {
-        if (oldType == null) {
-            return TownBlockType.WILDS; // Considering the further fact we know null is wilderness if there is no old type, it has to have been wilderness.
+        if (this.oldType == null) {
+            return TownBlockType.WILDS;
         }
-        return oldType;
+        return this.oldType;
     }
-
+    
     public TownBlock getTownBlock() {
-        return townBlock;
+        return this.townBlock;
+    }
+    
+    static {
+        handlers = new HandlerList();
     }
 }

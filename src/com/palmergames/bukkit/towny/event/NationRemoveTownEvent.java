@@ -1,50 +1,44 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
+import org.bukkit.Bukkit;
 import com.palmergames.bukkit.towny.object.Nation;
 import com.palmergames.bukkit.towny.object.Town;
-import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-
-public class NationRemoveTownEvent extends Event  {
-
-    private static final HandlerList handlers = new HandlerList();
-    
+public class NationRemoveTownEvent extends Event
+{
+    private static final HandlerList handlers;
     private Town town;
     private Nation nation;
-
-    @Override
+    
     public HandlerList getHandlers() {
-    	
-        return handlers;
+        return NationRemoveTownEvent.handlers;
     }
     
     public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-    public NationRemoveTownEvent(Town town, Nation nation) {
+        return NationRemoveTownEvent.handlers;
+    }
+    
+    public NationRemoveTownEvent(final Town town, final Nation nation) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.town = town;
         this.nation = nation;
     }
-
-    /**
-     *
-     * @return the town who has left a nation.
-     */
+    
     public Town getTown() {
-        return town;
-    }
-
-    /**
-     *
-     * @return the nation the town has just left.
-     */
-    public Nation getNation() {
-        return nation;
+        return this.town;
     }
     
+    public Nation getNation() {
+        return this.nation;
+    }
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

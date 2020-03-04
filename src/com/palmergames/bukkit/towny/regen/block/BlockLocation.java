@@ -1,73 +1,54 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.regen.block;
 
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.Chunk;
 
-/**
- * A class to hold basic block location data
- * 
- * @author ElgarL
- */
-public class BlockLocation {
-
-	public void setY(int y) {
-
-		this.y = y;
-	}
-
-	protected int x, z, y;
-	protected Chunk chunk;
-	protected World world;
-
-	public BlockLocation(Location loc) {
-
-		this.x = loc.getBlockX();
-		this.z = loc.getBlockZ();
-		this.y = loc.getBlockY();
-		this.chunk = loc.getChunk();
-		this.world = loc.getWorld();
-	}
-
-	public Chunk getChunk() {
-
-		return chunk;
-	}
-	
-	public int getX() {
-
-		return x;
-	}
-
-	public int getZ() {
-
-		return z;
-	}
-
-	public int getY() {
-
-		return y;
-	}
-
-	public World getWorld() {
-
-		return world;
-	}
-
-	public boolean isLocation(Location loc) {
-
-		if ((loc.getWorld() == getWorld()) && (loc.getBlockX() == getX()) && (loc.getBlockY() == getY()) && (loc.getBlockZ() == getZ()))
-			return true;
-
-		return false;
-	}
-
-//	public boolean isLocation(BlockLocation blockLocation) {
-//
-//		if ((blockLocation.getWorld() == getWorld()) && (blockLocation.getX() == getX()) && (blockLocation.getY() == getY()) && (blockLocation.getZ() == getZ()))
-//			return true;
-//
-//		return false;
-//	}
-
+public class BlockLocation
+{
+    protected int x;
+    protected int z;
+    protected int y;
+    protected Chunk chunk;
+    protected World world;
+    
+    public void setY(final int y) {
+        this.y = y;
+    }
+    
+    public BlockLocation(final Location loc) {
+        this.x = loc.getBlockX();
+        this.z = loc.getBlockZ();
+        this.y = loc.getBlockY();
+        this.chunk = loc.getChunk();
+        this.world = loc.getWorld();
+    }
+    
+    public Chunk getChunk() {
+        return this.chunk;
+    }
+    
+    public int getX() {
+        return this.x;
+    }
+    
+    public int getZ() {
+        return this.z;
+    }
+    
+    public int getY() {
+        return this.y;
+    }
+    
+    public World getWorld() {
+        return this.world;
+    }
+    
+    public boolean isLocation(final Location loc) {
+        return loc.getWorld() == this.getWorld() && loc.getBlockX() == this.getX() && loc.getBlockY() == this.getY() && loc.getBlockZ() == this.getZ();
+    }
 }

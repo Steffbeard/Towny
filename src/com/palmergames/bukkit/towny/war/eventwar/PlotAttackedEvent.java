@@ -1,53 +1,51 @@
-package com.palmergames.bukkit.towny.war.eventwar;
+// 
+// Decompiled by Procyon v0.5.36
+// 
 
-import java.util.HashSet;
+package com.palmergames.bukkit.towny.war.eventwar;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
-
+import java.util.HashSet;
 import com.palmergames.bukkit.towny.object.TownBlock;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-public class PlotAttackedEvent extends Event {
-
-	private static final HandlerList handlers = new HandlerList();
-	
-	@Override
-	public HandlerList getHandlers() {
-
-		return handlers;
-	}
-
-	public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-	
-	private TownBlock townBlock;
-	private HashSet<Player> players;
-	private int hp;
-	
-	public PlotAttackedEvent (TownBlock townBlock, HashSet<Player> players, int hp)
-	{
-		super(!Bukkit.getServer().isPrimaryThread());
-		this.townBlock = townBlock;
-		this.players = players;
-		this.hp = hp;
-	}
-	
-	public TownBlock getTownBlock() 
-	{
-		return townBlock;
-	}
-	
-	public HashSet<Player> getPlayers()
-	{
-		return players;
-	}
-	
-	public int getHP()
-	{
-		return hp;
-	}
+public class PlotAttackedEvent extends Event
+{
+    private static final HandlerList handlers;
+    private TownBlock townBlock;
+    private HashSet<Player> players;
+    private int hp;
+    
+    public HandlerList getHandlers() {
+        return PlotAttackedEvent.handlers;
+    }
+    
+    public static HandlerList getHandlerList() {
+        return PlotAttackedEvent.handlers;
+    }
+    
+    public PlotAttackedEvent(final TownBlock townBlock, final HashSet<Player> players, final int hp) {
+        super(!Bukkit.getServer().isPrimaryThread());
+        this.townBlock = townBlock;
+        this.players = players;
+        this.hp = hp;
+    }
+    
+    public TownBlock getTownBlock() {
+        return this.townBlock;
+    }
+    
+    public HashSet<Player> getPlayers() {
+        return this.players;
+    }
+    
+    public int getHP() {
+        return this.hp;
+    }
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

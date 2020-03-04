@@ -1,39 +1,37 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.Nation;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.Nation;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-
-public class NewNationEvent extends Event  {
-
-    private static final HandlerList handlers = new HandlerList();
-    
+public class NewNationEvent extends Event
+{
+    private static final HandlerList handlers;
     private Nation nation;
-
-    @Override
+    
     public HandlerList getHandlers() {
-    	
-        return handlers;
+        return NewNationEvent.handlers;
     }
     
     public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-    public NewNationEvent(Nation nation) {
+        return NewNationEvent.handlers;
+    }
+    
+    public NewNationEvent(final Nation nation) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.nation = nation;
     }
-
-    /**
-     *
-     * @return the new nation.
-     */
+    
     public Nation getNation() {
-        return nation;
+        return this.nation;
     }
     
+    static {
+        handlers = new HandlerList();
+    }
 }

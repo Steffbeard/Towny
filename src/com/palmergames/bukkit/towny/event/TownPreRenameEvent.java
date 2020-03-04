@@ -1,65 +1,60 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
 import org.bukkit.Bukkit;
+import com.palmergames.bukkit.towny.object.Town;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
 
-import com.palmergames.bukkit.towny.object.Town;
-
-public class TownPreRenameEvent extends Event implements Cancellable {
-
-	private static final HandlerList handlers = new HandlerList();
-	private String oldName, newName;
-	private Town town;
-	private boolean isCancelled = false;
-
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
-
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
-
-	public TownPreRenameEvent(Town town, String newName) {
-		super(!Bukkit.getServer().isPrimaryThread());
-		this.oldName = town.getName();
-		this.town = town;
-		this.newName = newName;
-	}
-
-	/**
-	 *
-	 * @return the old town name.
-	 */
-	public String getOldName() {
-		return oldName;
-	}
-	/**
-	 * 
-	 * @return the new town name.
-	 */
-	public String getNewName() {
-		return newName;
-	}
-
-	/**
-	 *
-	 * @return the town with it's changed name
-	 */
-	public Town getTown() {
-		return this.town;
-	}
-
-	@Override
-	public boolean isCancelled() {
-		return isCancelled;
-	}
-
-	@Override
-	public void setCancelled(boolean cancel) {
-		this.isCancelled = cancel;
-	}
+public class TownPreRenameEvent extends Event implements Cancellable
+{
+    private static final HandlerList handlers;
+    private String oldName;
+    private String newName;
+    private Town town;
+    private boolean isCancelled;
+    
+    public HandlerList getHandlers() {
+        return TownPreRenameEvent.handlers;
+    }
+    
+    public static HandlerList getHandlerList() {
+        return TownPreRenameEvent.handlers;
+    }
+    
+    public TownPreRenameEvent(final Town town, final String newName) {
+        super(!Bukkit.getServer().isPrimaryThread());
+        this.isCancelled = false;
+        this.oldName = town.getName();
+        this.town = town;
+        this.newName = newName;
+    }
+    
+    public String getOldName() {
+        return this.oldName;
+    }
+    
+    public String getNewName() {
+        return this.newName;
+    }
+    
+    public Town getTown() {
+        return this.town;
+    }
+    
+    public boolean isCancelled() {
+        return this.isCancelled;
+    }
+    
+    public void setCancelled(final boolean cancel) {
+        this.isCancelled = cancel;
+    }
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

@@ -1,51 +1,44 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.Town;
-import com.palmergames.bukkit.towny.object.WorldCoord;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.WorldCoord;
+import com.palmergames.bukkit.towny.object.Town;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-
-public class TownUnclaimEvent extends Event  {
-
-    private static final HandlerList handlers = new HandlerList();
-    
+public class TownUnclaimEvent extends Event
+{
+    private static final HandlerList handlers;
     private Town town;
     private WorldCoord worldCoord;
-
-    @Override
+    
     public HandlerList getHandlers() {
-    	
-        return handlers;
+        return TownUnclaimEvent.handlers;
     }
     
     public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-    public TownUnclaimEvent(Town _town, WorldCoord _worldcoord) {
+        return TownUnclaimEvent.handlers;
+    }
+    
+    public TownUnclaimEvent(final Town _town, final WorldCoord _worldcoord) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.town = _town;
         this.worldCoord = _worldcoord;
     }
-
-    /**
-     *
-     * @return the Town.
-     */
+    
     public Town getTown() {
-        return town;
+        return this.town;
     }
     
-    /**
-    *
-    * @return the Unclaimed WorldCoord.
-    *
-    */
-   public WorldCoord getWorldCoord() {
-       return worldCoord;
-   }
+    public WorldCoord getWorldCoord() {
+        return this.worldCoord;
+    }
     
+    static {
+        handlers = new HandlerList();
+    }
 }

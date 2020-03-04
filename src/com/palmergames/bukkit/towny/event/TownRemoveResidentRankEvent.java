@@ -1,66 +1,50 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.Resident;
-import com.palmergames.bukkit.towny.object.Town;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.Town;
+import com.palmergames.bukkit.towny.object.Resident;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
- /**
- * @author Artuto
- *
- * Fired after a Resident has been removed from a Town rank.
- */
 public class TownRemoveResidentRankEvent extends Event
 {
-	private static final HandlerList handlers = new HandlerList();
-
+    private static final HandlerList handlers;
     private Resident resident;
     private String rank;
     private Town town;
     
-    public TownRemoveResidentRankEvent(Resident resident, String rank, Town town) {
+    public TownRemoveResidentRankEvent(final Resident resident, final String rank, final Town town) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.resident = resident;
         this.rank = rank;
         this.town = town;
     }
     
-     /**
-     *
-     * @return the resident that got removed the rank
-     * */
-    public Resident getResident()
-    {
-        return resident;
+    public Resident getResident() {
+        return this.resident;
     }
     
-     /**
-     *
-     * @return the removed rank
-     * */
-    public String getRank()
-    {
-        return rank;
+    public String getRank() {
+        return this.rank;
     }
     
-     /**
-     *
-     * @return the town this resident is part of
-     * */
-    public Town getTown()
-    {
-        return town;
+    public Town getTown() {
+        return this.town;
     }
-
-	@Override
-	public HandlerList getHandlers() {
-
-		return handlers;
-	}
-	
-	public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
+    
+    public HandlerList getHandlers() {
+        return TownRemoveResidentRankEvent.handlers;
+    }
+    
+    public static HandlerList getHandlerList() {
+        return TownRemoveResidentRankEvent.handlers;
+    }
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

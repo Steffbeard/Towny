@@ -1,42 +1,40 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-public class EventWarPreStartEvent extends Event{
-	private static final HandlerList handlers = new HandlerList();
-	private double warSpoils;
-
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
-	
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
-	
-	public EventWarPreStartEvent() {
-		super(!Bukkit.getServer().isPrimaryThread());
-		this.warSpoils = 0.0;
-	}
-
-	/** 
-	 * This amount is in addition to the base_spoils amount in the config.
-	 * 
-	 * @return double - Amount that will be added to the WarSpoils account.
-	 */
-	public double getWarSpoils() {
-		return warSpoils;		
-	}
-	
-	/**
-	 * Set an additional amount to the base_spoils amount in the config.
-	 * 
-	 * @param warSpoils - Amount that will be added to the WarSpoils.
-	 */
-	public void setWarSpoils(double warSpoils) {
-		this.warSpoils = warSpoils;
-	}
+public class EventWarPreStartEvent extends Event
+{
+    private static final HandlerList handlers;
+    private double warSpoils;
+    
+    public HandlerList getHandlers() {
+        return EventWarPreStartEvent.handlers;
+    }
+    
+    public static HandlerList getHandlerList() {
+        return EventWarPreStartEvent.handlers;
+    }
+    
+    public EventWarPreStartEvent() {
+        super(!Bukkit.getServer().isPrimaryThread());
+        this.warSpoils = 0.0;
+    }
+    
+    public double getWarSpoils() {
+        return this.warSpoils;
+    }
+    
+    public void setWarSpoils(final double warSpoils) {
+        this.warSpoils = warSpoils;
+    }
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

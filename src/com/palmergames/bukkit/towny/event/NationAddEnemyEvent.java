@@ -1,45 +1,43 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.Nation;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.Nation;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-public class NationAddEnemyEvent extends Event {
-	
-	private static HandlerList handlers = new HandlerList();
-
-	private Nation enemy;
-	private Nation nation;
-	
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
-	
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
-	
-	public NationAddEnemyEvent(Nation nation, Nation enemy) {
-		super(!Bukkit.getServer().isPrimaryThread());
-		this.enemy = enemy;
-		this.nation = nation;
-	}
-
-	/**
-	 *
-	 * @return the nation that added the enemy.
-	 */
-	public Nation getNation() {
-		return nation;
-	}
-
-	/**
-	 *
-	 * @return the nation that is now an enemy.
-	 */
-	public Nation getEnemy() {
-		return enemy;
-	}
+public class NationAddEnemyEvent extends Event
+{
+    private static HandlerList handlers;
+    private Nation enemy;
+    private Nation nation;
+    
+    public HandlerList getHandlers() {
+        return NationAddEnemyEvent.handlers;
+    }
+    
+    public static HandlerList getHandlerList() {
+        return NationAddEnemyEvent.handlers;
+    }
+    
+    public NationAddEnemyEvent(final Nation nation, final Nation enemy) {
+        super(!Bukkit.getServer().isPrimaryThread());
+        this.enemy = enemy;
+        this.nation = nation;
+    }
+    
+    public Nation getNation() {
+        return this.nation;
+    }
+    
+    public Nation getEnemy() {
+        return this.enemy;
+    }
+    
+    static {
+        NationAddEnemyEvent.handlers = new HandlerList();
+    }
 }

@@ -1,37 +1,37 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.inviteobjects.NationAllyNationInvite;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.inviteobjects.NationAllyNationInvite;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-
-public class NationRequestAllyNationEvent extends Event {
-
-	private static final HandlerList handlers = new HandlerList();
-	private NationAllyNationInvite invite;
-
-	@Override
-	public HandlerList getHandlers() {
-
-		return handlers;
-	}
-
-	public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-	public NationRequestAllyNationEvent(NationAllyNationInvite invite) {
-		super(!Bukkit.getServer().isPrimaryThread());
-		this.invite = invite;
-	}
-
-	/**
-	 * @return - Object containing the directsender(Mayor), indirectsender(Town) and receiver of an invite.
-	 */
-	public NationAllyNationInvite getInvite() {
-		return invite;
-	}
-
+public class NationRequestAllyNationEvent extends Event
+{
+    private static final HandlerList handlers;
+    private NationAllyNationInvite invite;
+    
+    public HandlerList getHandlers() {
+        return NationRequestAllyNationEvent.handlers;
+    }
+    
+    public static HandlerList getHandlerList() {
+        return NationRequestAllyNationEvent.handlers;
+    }
+    
+    public NationRequestAllyNationEvent(final NationAllyNationInvite invite) {
+        super(!Bukkit.getServer().isPrimaryThread());
+        this.invite = invite;
+    }
+    
+    public NationAllyNationInvite getInvite() {
+        return this.invite;
+    }
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

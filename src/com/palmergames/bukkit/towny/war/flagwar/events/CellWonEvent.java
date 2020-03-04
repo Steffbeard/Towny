@@ -1,49 +1,46 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.war.flagwar.events;
 
+import com.palmergames.bukkit.towny.war.flagwar.CellUnderAttack;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
 
-import com.palmergames.bukkit.towny.war.flagwar.CellUnderAttack;
-
-public class CellWonEvent extends Event implements Cancellable {
-
-	private static final HandlerList handlers = new HandlerList();
-	public boolean cancelled = false;
-
-	@Override
-	public HandlerList getHandlers() {
-
-		return handlers;
-	}
-
-	public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-	//////////////////////////////
-
-	private CellUnderAttack cellAttackData;
-
-	public CellWonEvent(CellUnderAttack cellAttackData) {
-
-		super();
-		this.cellAttackData = cellAttackData;
-	}
-
-	public CellUnderAttack getCellAttackData() {
-
-		return cellAttackData;
-	}
-	
-	@Override
-    public boolean isCancelled() {
-        return cancelled;
+public class CellWonEvent extends Event implements Cancellable
+{
+    private static final HandlerList handlers;
+    public boolean cancelled;
+    private CellUnderAttack cellAttackData;
+    
+    public HandlerList getHandlers() {
+        return CellWonEvent.handlers;
     }
-	
-     @Override
-    public void setCancelled(boolean cancel) {
+    
+    public static HandlerList getHandlerList() {
+        return CellWonEvent.handlers;
+    }
+    
+    public CellWonEvent(final CellUnderAttack cellAttackData) {
+        this.cancelled = false;
+        this.cellAttackData = cellAttackData;
+    }
+    
+    public CellUnderAttack getCellAttackData() {
+        return this.cellAttackData;
+    }
+    
+    public boolean isCancelled() {
+        return this.cancelled;
+    }
+    
+    public void setCancelled(final boolean cancel) {
         this.cancelled = cancel;
+    }
+    
+    static {
+        handlers = new HandlerList();
     }
 }

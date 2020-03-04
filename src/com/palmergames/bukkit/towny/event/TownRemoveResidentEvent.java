@@ -1,55 +1,44 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.Resident;
-import com.palmergames.bukkit.towny.object.Town;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.Town;
+import com.palmergames.bukkit.towny.object.Resident;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-/**
- * Author: Chris H (Zren / Shade)
- * Date: 5/23/12
- *
- * Fired after a resident has been removed from a town.
- */
-public class TownRemoveResidentEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
-    
+public class TownRemoveResidentEvent extends Event
+{
+    private static final HandlerList handlers;
     private Resident resident;
     private Town town;
-
-    @Override
+    
     public HandlerList getHandlers() {
-    	
-        return handlers;
+        return TownRemoveResidentEvent.handlers;
     }
     
     public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-    public TownRemoveResidentEvent(Resident resident, Town town) {
+        return TownRemoveResidentEvent.handlers;
+    }
+    
+    public TownRemoveResidentEvent(final Resident resident, final Town town) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.resident = resident;
         this.town = town;
     }
-
-    /**
-     *
-     * @return the resident who has been removed from a town.
-     */
+    
     public Resident getResident() {
-        return resident;
+        return this.resident;
     }
-
-    /**
-     *
-     * @return the town the resident was previously in.
-     */
+    
     public Town getTown() {
-        return town;
+        return this.town;
     }
-
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

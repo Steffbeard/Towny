@@ -1,73 +1,59 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
 import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
+import org.bukkit.Bukkit;
 import com.palmergames.bukkit.towny.object.Town;
 import com.palmergames.bukkit.towny.object.TownBlock;
-import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
 
-
-public class TownPreUnclaimEvent extends Event implements Cancellable {
-
-    private static final HandlerList handlers = new HandlerList();
+public class TownPreUnclaimEvent extends Event implements Cancellable
+{
+    private static final HandlerList handlers;
     private TownBlock townBlock;
     private Town town;
-    private boolean isCancelled = false;
-
-    @Override
+    private boolean isCancelled;
+    
     public HandlerList getHandlers() {
-    	
-        return handlers;
+        return TownPreUnclaimEvent.handlers;
     }
     
     public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-    /**
-     * Event thrown prior to a TownBlock being unclaimed by a Town.
-     * This is cancellable but it is probably not a good idea to do
-     * so without testing.
-     *  
-     * @param _townBlock - The TownBlock that will be unclaimed.
-     */
-    public TownPreUnclaimEvent(TownBlock _townBlock) {
+        return TownPreUnclaimEvent.handlers;
+    }
+    
+    public TownPreUnclaimEvent(final TownBlock _townBlock) {
         super(!Bukkit.getServer().isPrimaryThread());
+        this.isCancelled = false;
         this.townBlock = _townBlock;
         try {
-			this.town = townBlock.getTown();
-		} catch (NotRegisteredException e) {
-		}
+            this.town = this.townBlock.getTown();
+        }
+        catch (NotRegisteredException ex) {}
     }
-
-    @Override
+    
     public boolean isCancelled() {
-        return isCancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancelled) {
-        isCancelled = cancelled;
+        return this.isCancelled;
     }
     
-    /**
-     *
-     * @return the Town.
-     */
+    public void setCancelled(final boolean cancelled) {
+        this.isCancelled = cancelled;
+    }
+    
     public Town getTown() {
-        return town;
+        return this.town;
     }
     
-    /**
-    *
-    * @return the soon-to-be unclaimed TownBlock.
-    *
-    */
-   public TownBlock getTownBlock() {
-       return townBlock;
-   }
+    public TownBlock getTownBlock() {
+        return this.townBlock;
+    }
     
+    static {
+        handlers = new HandlerList();
+    }
 }

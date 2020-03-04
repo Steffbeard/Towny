@@ -1,55 +1,44 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
-import com.palmergames.bukkit.towny.object.Resident;
-import com.palmergames.bukkit.towny.object.Town;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
+import com.palmergames.bukkit.towny.object.Town;
+import com.palmergames.bukkit.towny.object.Resident;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-/**
- * Author: Chris H (Zren / Shade)
- * Date: 5/23/12
- *
- * Fired after a resident has been added to a town.
- */
-public class TownAddResidentEvent extends Event {
-
-    private static final HandlerList handlers = new HandlerList();
-    
+public class TownAddResidentEvent extends Event
+{
+    private static final HandlerList handlers;
     private Resident resident;
     private Town town;
-
-    @Override
+    
     public HandlerList getHandlers() {
-    	
-        return handlers;
+        return TownAddResidentEvent.handlers;
     }
     
     public static HandlerList getHandlerList() {
-
-		return handlers;
-	}
-
-    public TownAddResidentEvent(Resident resident, Town town) {
+        return TownAddResidentEvent.handlers;
+    }
+    
+    public TownAddResidentEvent(final Resident resident, final Town town) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.resident = resident;
         this.town = town;
     }
-
-    /**
-     *
-     * @return the resident who has joined a town.
-     */
+    
     public Resident getResident() {
-        return resident;
+        return this.resident;
     }
-
-    /**
-     *
-     * @return the town the resident has just joined.
-     */
+    
     public Town getTown() {
-        return town;
+        return this.town;
     }
-
+    
+    static {
+        handlers = new HandlerList();
+    }
 }

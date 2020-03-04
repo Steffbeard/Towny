@@ -1,786 +1,663 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.object;
 
-import com.palmergames.bukkit.towny.TownySettings;
 import com.palmergames.bukkit.towny.TownyUniverse;
-import com.palmergames.bukkit.towny.exceptions.AlreadyRegisteredException;
-import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
-import com.palmergames.bukkit.towny.exceptions.TownyException;
-import com.palmergames.bukkit.towny.object.TownyPermission.ActionType;
 import com.palmergames.bukkit.towny.object.metadata.CustomDataField;
-import org.bukkit.Material;
+import com.palmergames.bukkit.towny.exceptions.TownyException;
 import org.bukkit.entity.Entity;
-
-import java.util.ArrayList;
+import org.bukkit.Material;
 import java.util.Collection;
+import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
+import com.palmergames.bukkit.towny.exceptions.AlreadyRegisteredException;
+import java.util.Iterator;
+import com.palmergames.bukkit.towny.TownySettings;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 
-public class TownyWorld extends TownyObject {
-
-	private List<Town> towns = new ArrayList<>();
-	private boolean isClaimable = true;
-	private boolean isUsingPlotManagementDelete = TownySettings.isUsingPlotManagementDelete();
-	private boolean isUsingPlotManagementMayorDelete = TownySettings.isUsingPlotManagementMayorDelete();
-	private boolean isUsingPlotManagementRevert = TownySettings.isUsingPlotManagementRevert();
-	private boolean isUsingPlotManagementWildRevert = TownySettings.isUsingPlotManagementWildRegen();
-	private long plotManagementRevertSpeed = TownySettings.getPlotManagementSpeed();
-	private long plotManagementWildRevertDelay = TownySettings.getPlotManagementWildRegenDelay();
-	private List<String> unclaimedZoneIgnoreBlockMaterials = null;
-	private List<String> plotManagementDeleteIds = null;
-	private List<String> plotManagementMayorDelete = null;
-	private List<String> plotManagementIgnoreIds = null;
-	private Boolean unclaimedZoneBuild = null, unclaimedZoneDestroy = null,
-			unclaimedZoneSwitch = null, unclaimedZoneItemUse = null;
-	private String unclaimedZoneName = null;
-	private ConcurrentHashMap<Coord, TownBlock> townBlocks = new ConcurrentHashMap<>();
-	private List<Coord> warZones = new ArrayList<>();
-	private List<String> entityExplosionProtection = null;
-	
-	private boolean isUsingTowny = TownySettings.isUsingTowny();
-	private boolean isWarAllowed = TownySettings.isWarAllowed();
-	private boolean isPVP = TownySettings.isPvP();
-	private boolean isForcePVP = TownySettings.isForcingPvP();
-	private boolean isFire = TownySettings.isFire();
-	private boolean isForceFire = TownySettings.isForcingFire();
-	private boolean hasWorldMobs = TownySettings.isWorldMonstersOn();
-	private boolean isForceTownMobs = TownySettings.isForcingMonsters();
-	private boolean isExplosion = TownySettings.isExplosions();
-	private boolean isForceExpl = TownySettings.isForcingExplosions();
-	private boolean isEndermanProtect = TownySettings.getEndermanProtect();
-	
-	private boolean isDisablePlayerTrample = TownySettings.isPlayerTramplingCropsDisabled();
-	private boolean isDisableCreatureTrample = TownySettings.isCreatureTramplingCropsDisabled();
-
-	// TODO: private List<TownBlock> adminTownBlocks = new
-	// ArrayList<TownBlock>();
-
-	public TownyWorld(String name) {
-		super(name);
-	}
-
-	public List<Town> getTowns() {
-
-		return towns;
-	}
-
-	public boolean hasTowns() {
-
-		return !towns.isEmpty();
-	}
-
-	public boolean hasTown(String name) {
-
-		for (Town town : towns)
-			if (town.getName().equalsIgnoreCase(name))
-				return true;
-		return false;
-	}
-
-	public boolean hasTown(Town town) {
-
-		return towns.contains(town);
-	}
-
-	public void addTown(Town town) throws AlreadyRegisteredException {
-
-		if (hasTown(town))
-			throw new AlreadyRegisteredException();
-		else {
-			towns.add(town);
-			town.setWorld(this);
-		}
-	}
-
-	public TownBlock getTownBlock(Coord coord) throws NotRegisteredException {
-
-		TownBlock townBlock = townBlocks.get(coord);
-		if (townBlock == null)
-			throw new NotRegisteredException();
-		else
-			return townBlock;
-	}
-
-	public void newTownBlock(int x, int z) throws AlreadyRegisteredException {
-
-		newTownBlock(new Coord(x, z));
-	}
-
-	public TownBlock newTownBlock(Coord key) throws AlreadyRegisteredException {
-
-		if (hasTownBlock(key))
-			throw new AlreadyRegisteredException();
-		townBlocks.put(new Coord(key.getX(), key.getZ()), new TownBlock(key.getX(), key.getZ(), this));
-		return townBlocks.get(new Coord(key.getX(), key.getZ()));
-	}
-
-	public boolean hasTownBlock(Coord key) {
-
-		return townBlocks.containsKey(key);
-	}
-
-	public TownBlock getTownBlock(int x, int z) throws NotRegisteredException {
-
-		return getTownBlock(new Coord(x, z));
-	}
-
-	public List<TownBlock> getTownBlocks(Town town) {
-
-		List<TownBlock> out = new ArrayList<>();
-		for (TownBlock townBlock : town.getTownBlocks())
-			if (townBlock.getWorld() == this)
-				out.add(townBlock);
-		return out;
-	}
-
-	public Collection<TownBlock> getTownBlocks() {
-
-		return townBlocks.values();
-	}
-
-	public void removeTown(Town town) throws NotRegisteredException {
-
-		if (!hasTown(town))
-			throw new NotRegisteredException();
-		else {
-			towns.remove(town);
-			/*
-			 * try {
-			 * town.setWorld(null);
-			 * } catch (AlreadyRegisteredException e) {
-			 * }
-			 */
-		}
-	}
-
-	public void removeTownBlock(TownBlock townBlock) {
-
-		if (hasTownBlock(townBlock.getCoord())) {			
-	
-			try {
-				if (townBlock.hasResident())
-					townBlock.getResident().removeTownBlock(townBlock);
-			} catch (NotRegisteredException e) {
-			}
-			try {
-				if (townBlock.hasTown())
-					townBlock.getTown().removeTownBlock(townBlock);
-			} catch (NotRegisteredException e) {
-			}
-	
-			removeTownBlock(townBlock.getCoord());
-		}
-	}
-
-	public void removeTownBlocks(List<TownBlock> townBlocks) {
-
-		for (TownBlock townBlock : new ArrayList<>(townBlocks))
-			removeTownBlock(townBlock);
-	}
-
-	public void removeTownBlock(Coord coord) {
-
-		townBlocks.remove(coord);
-	}
-
-	@Override
-	public List<String> getTreeString(int depth) {
-
-		List<String> out = new ArrayList<>();
-		out.add(getTreeDepth(depth) + "World (" + getName() + ")");
-		out.add(getTreeDepth(depth + 1) + "TownBlocks (" + getTownBlocks().size() + "): " /*
-																						 * +
-																						 * getTownBlocks
-																						 * (
-																						 * )
-																						 */);
-		return out;
-	}
-
-	public void setWarAllowed(boolean isWarAllowed) {
-
-		this.isWarAllowed = isWarAllowed;
-	}
-
-	public boolean isWarAllowed() {
-
-		return this.isWarAllowed;
-	}
-
-	public void setPVP(boolean isPVP) {
-
-		this.isPVP = isPVP;
-	}
-
-	public boolean isPVP() {
-
-		return this.isPVP;
-	}
-
-	public void setForcePVP(boolean isPVP) {
-
-		this.isForcePVP = isPVP;
-	}
-
-	public boolean isForcePVP() {
-
-		return this.isForcePVP;
-	}
-
-	public void setExpl(boolean isExpl) {
-
-		this.isExplosion = isExpl;
-	}
-
-	public boolean isExpl() {
-
-		return isExplosion;
-	}
-
-	public void setForceExpl(boolean isExpl) {
-
-		this.isForceExpl = isExpl;
-	}
-
-	public boolean isForceExpl() {
-
-		return isForceExpl;
-	}
-
-	public void setFire(boolean isFire) {
-
-		this.isFire = isFire;
-	}
-
-	public boolean isFire() {
-
-		return isFire;
-	}
-
-	public void setForceFire(boolean isFire) {
-
-		this.isForceFire = isFire;
-	}
-
-	public boolean isForceFire() {
-
-		return isForceFire;
-	}
-
-	public void setDisablePlayerTrample(boolean isDisablePlayerTrample) {
-
-		this.isDisablePlayerTrample = isDisablePlayerTrample;
-	}
-
-	public boolean isDisablePlayerTrample() {
-
-		return isDisablePlayerTrample;
-	}
-
-	public void setDisableCreatureTrample(boolean isDisableCreatureTrample) {
-
-		this.isDisableCreatureTrample = isDisableCreatureTrample;
-	}
-
-	public boolean isDisableCreatureTrample() {
-
-		return isDisableCreatureTrample;
-	}
-
-	public void setWorldMobs(boolean hasMobs) {
-
-		this.hasWorldMobs = hasMobs;
-	}
-
-	public boolean hasWorldMobs() {
-
-		return this.hasWorldMobs;
-	}
-
-	public void setForceTownMobs(boolean setMobs) {
-
-		this.isForceTownMobs = setMobs;
-	}
-
-	public boolean isForceTownMobs() {
-
-		return isForceTownMobs;
-	}
-
-	public void setEndermanProtect(boolean setEnder) {
-
-		this.isEndermanProtect = setEnder;
-	}
-
-	public boolean isEndermanProtect() {
-
-		return isEndermanProtect;
-	}
-
-	public void setClaimable(boolean isClaimable) {
-
-		this.isClaimable = isClaimable;
-	}
-
-	public boolean isClaimable() {
-
-		if (!isUsingTowny())
-			return false;
-		else
-			return isClaimable;
-	}
-
-	public void setUsingDefault() {
-
-		setUnclaimedZoneBuild(null);
-		setUnclaimedZoneDestroy(null);
-		setUnclaimedZoneSwitch(null);
-		setUnclaimedZoneItemUse(null);
-		setUnclaimedZoneIgnore(null);
-		setUnclaimedZoneName(null);
-	}
-
-	public void setUsingPlotManagementDelete(boolean using) {
-
-		isUsingPlotManagementDelete = using;
-	}
-
-	public boolean isUsingPlotManagementDelete() {
-
-		return isUsingPlotManagementDelete;
-	}
-
-	public void setUsingPlotManagementMayorDelete(boolean using) {
-
-		isUsingPlotManagementMayorDelete = using;
-	}
-
-	public boolean isUsingPlotManagementMayorDelete() {
-
-		return isUsingPlotManagementMayorDelete;
-	}
-
-	public void setUsingPlotManagementRevert(boolean using) {
-
-		isUsingPlotManagementRevert = using;
-	}
-
-	public boolean isUsingPlotManagementRevert() {
-
-		return isUsingPlotManagementRevert;
-	}
-
-	public List<String> getPlotManagementDeleteIds() {
-
-		if (plotManagementDeleteIds == null)
-			return TownySettings.getPlotManagementDeleteIds();
-		else
-			return plotManagementDeleteIds;
-	}
-
-	public boolean isPlotManagementDeleteIds(String id) {
-
-		return getPlotManagementDeleteIds().contains(id);
-	}
-
-	public void setPlotManagementDeleteIds(List<String> plotManagementDeleteIds) {
-
-		this.plotManagementDeleteIds = plotManagementDeleteIds;
-	}
-
-	public List<String> getPlotManagementMayorDelete() {
-
-		if (plotManagementMayorDelete == null)
-			return TownySettings.getPlotManagementMayorDelete();
-		else
-			return plotManagementMayorDelete;
-	}
-
-	public boolean isPlotManagementMayorDelete(String material) {
-
-		return getPlotManagementMayorDelete().contains(material.toUpperCase());
-	}
-
-	public void setPlotManagementMayorDelete(List<String> plotManagementMayorDelete) {
-
-		this.plotManagementMayorDelete = plotManagementMayorDelete;
-	}
-
-	public List<String> getPlotManagementIgnoreIds() {
-		
-		if (plotManagementIgnoreIds == null)
-			return TownySettings.getPlotManagementIgnoreIds();
-		else
-			return plotManagementIgnoreIds;
-	}
-
-	public boolean isPlotManagementIgnoreIds(Material mat) {
-		return getPlotManagementIgnoreIds().contains(mat.toString());
-	}
-	
-	@Deprecated
-	public boolean isPlotManagementIgnoreIds(String id, Byte data) {
-
-		if (getPlotManagementIgnoreIds().contains(id + ":" + Byte.toString(data)))
-			return true;
-		
-		return getPlotManagementIgnoreIds().contains(id);
-	}
-
-	public void setPlotManagementIgnoreIds(List<String> plotManagementIgnoreIds) {
-
-		this.plotManagementIgnoreIds = plotManagementIgnoreIds;
-	}
-
-	/**
-	 * @return the isUsingPlotManagementWildRevert
-	 */
-	public boolean isUsingPlotManagementWildRevert() {
-
-		return isUsingPlotManagementWildRevert;
-	}
-
-	/**
-	 * @param isUsingPlotManagementWildRevert the
-	 *            isUsingPlotManagementWildRevert to set
-	 */
-	public void setUsingPlotManagementWildRevert(boolean isUsingPlotManagementWildRevert) {
-
-		this.isUsingPlotManagementWildRevert = isUsingPlotManagementWildRevert;
-	}
-
-	/*
-	 * No longer used - Never was used. Sadly not configurable per-world based on how the timer runs.
-	 */
-	/**
-	 * @return the plotManagementRevertSpeed
-	 */
-	public long getPlotManagementRevertSpeed() {
-
-		return plotManagementRevertSpeed;
-	}
-
-	/**
-	 * @param plotManagementRevertSpeed the plotManagementRevertSpeed to set
-	 */
-	public void setPlotManagementRevertSpeed(long plotManagementRevertSpeed) {
-
-		this.plotManagementRevertSpeed = plotManagementRevertSpeed;
-	}
-
-	/**
-	 * @return the plotManagementWildRevertDelay
-	 */
-	public long getPlotManagementWildRevertDelay() {
-
-		return plotManagementWildRevertDelay;
-	}
-
-	/**
-	 * @param plotManagementWildRevertDelay the plotManagementWildRevertDelay to
-	 *            set
-	 */
-	public void setPlotManagementWildRevertDelay(long plotManagementWildRevertDelay) {
-
-		this.plotManagementWildRevertDelay = plotManagementWildRevertDelay;
-	}
-
-	public void setPlotManagementWildRevertEntities(List<String> entities) {
-
-		entityExplosionProtection = new ArrayList<>();
-
-		for (String mob : entities)
-			if (!mob.equals("")) {
-				entityExplosionProtection.add(mob.toLowerCase());
-			}
-
-	}
-
-	public List<String> getPlotManagementWildRevertEntities() {
-
-		if (entityExplosionProtection == null)
-			setPlotManagementWildRevertEntities(TownySettings.getWildExplosionProtectionEntities());
-
-		return entityExplosionProtection;
-	}
-
-	public boolean isProtectingExplosionEntity(Entity entity) {
-
-		if (entityExplosionProtection == null)
-			setPlotManagementWildRevertEntities(TownySettings.getWildExplosionProtectionEntities());
-
-		return (entityExplosionProtection.contains(entity.getType().getEntityClass().getSimpleName().toLowerCase()));
-
-	}
-
-	public void setUnclaimedZoneIgnore(List<String> unclaimedZoneIgnoreIds) {
-
-		this.unclaimedZoneIgnoreBlockMaterials = unclaimedZoneIgnoreIds;
-	}
-	
-	public List<String> getUnclaimedZoneIgnoreMaterials() {
-
-		if (unclaimedZoneIgnoreBlockMaterials == null)
-			return TownySettings.getUnclaimedZoneIgnoreMaterials();
-		else
-			return unclaimedZoneIgnoreBlockMaterials;
-	}
-
-	@SuppressWarnings("unlikely-arg-type")
-	public boolean isUnclaimedZoneIgnoreMaterial(Material mat) {
-
-		return getUnclaimedZoneIgnoreMaterials().contains(mat);
-	}
-
-
-	public boolean getUnclaimedZonePerm(ActionType type) {
-
-		switch (type) {
-		case BUILD:
-			return this.getUnclaimedZoneBuild();
-		case DESTROY:
-			return this.getUnclaimedZoneDestroy();
-		case SWITCH:
-			return this.getUnclaimedZoneSwitch();
-		case ITEM_USE:
-			return this.getUnclaimedZoneItemUse();
-		default:
-			throw new UnsupportedOperationException();
-		}
-	}
-
-	public Boolean getUnclaimedZoneBuild() {
-
-		if (unclaimedZoneBuild == null)
-			return TownySettings.getUnclaimedZoneBuildRights();
-		else
-			return unclaimedZoneBuild;
-	}
-
-	public void setUnclaimedZoneBuild(Boolean unclaimedZoneBuild) {
-
-		this.unclaimedZoneBuild = unclaimedZoneBuild;
-	}
-
-	public Boolean getUnclaimedZoneDestroy() {
-
-		if (unclaimedZoneDestroy == null)
-			return TownySettings.getUnclaimedZoneDestroyRights();
-		else
-			return unclaimedZoneDestroy;
-	}
-
-	public void setUnclaimedZoneDestroy(Boolean unclaimedZoneDestroy) {
-
-		this.unclaimedZoneDestroy = unclaimedZoneDestroy;
-	}
-
-	public Boolean getUnclaimedZoneSwitch() {
-
-		if (unclaimedZoneSwitch == null)
-			return TownySettings.getUnclaimedZoneSwitchRights();
-		else
-			return unclaimedZoneSwitch;
-	}
-
-	public void setUnclaimedZoneSwitch(Boolean unclaimedZoneSwitch) {
-
-		this.unclaimedZoneSwitch = unclaimedZoneSwitch;
-	}
-
-	public String getUnclaimedZoneName() {
-
-		if (unclaimedZoneName == null)
-			return TownySettings.getUnclaimedZoneName();
-		else
-			return unclaimedZoneName;
-	}
-
-	public void setUnclaimedZoneName(String unclaimedZoneName) {
-
-		this.unclaimedZoneName = unclaimedZoneName;
-	}
-
-	public void setUsingTowny(boolean isUsingTowny) {
-
-		this.isUsingTowny = isUsingTowny;
-	}
-
-	public boolean isUsingTowny() {
-
-		return isUsingTowny;
-	}
-
-	public void setUnclaimedZoneItemUse(Boolean unclaimedZoneItemUse) {
-
-		this.unclaimedZoneItemUse = unclaimedZoneItemUse;
-	}
-
-	public Boolean getUnclaimedZoneItemUse() {
-
-		if (unclaimedZoneItemUse == null)
-			return TownySettings.getUnclaimedZoneItemUseRights();
-		else
-			return unclaimedZoneItemUse;
-	}
-
-	/**
-	 * Checks the distance from the closest homeblock.
-	 * 
-	 * @param key - Coord to check from.
-	 * @return the distance to nearest towns homeblock.
-	 */
-	public int getMinDistanceFromOtherTowns(Coord key) {
-
-		return getMinDistanceFromOtherTowns(key, null);
-
-	}
-
-	/**
-	 * Checks the distance from a another town's homeblock.
-	 * 
-	 * @param key - Coord to check from.
-	 * @param homeTown Players town
-	 * @return the closest distance to another towns homeblock.
-	 */
-	public int getMinDistanceFromOtherTowns(Coord key, Town homeTown) {
-
-		double min = Integer.MAX_VALUE;
-		for (Town town : getTowns())
-			try {
-				Coord townCoord = town.getHomeBlock().getCoord();
-				if (homeTown != null)
-					if (homeTown.getHomeBlock().equals(town.getHomeBlock()))
-						continue;
-				
-				if (!town.getWorld().equals(this)) continue;
-				
-				double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2) + Math.pow(townCoord.getZ() - key.getZ(), 2));
-				if (dist < min)
-					min = dist;
-			} catch (TownyException e) {
-			}
-
-		return (int) Math.ceil(min);
-	}
-
-	/**
-	 * Checks the distance from the closest town block.
-	 * 
-	 * @param key - Coord to check from.
-	 * @return the distance to nearest town's townblock.
-	 */
-	public int getMinDistanceFromOtherTownsPlots(Coord key) {
-
-		return getMinDistanceFromOtherTownsPlots(key, null);
-	}
-
-	/**
-	 * Checks the distance from a another town's plots.
-	 * 
-	 * @param key - Coord to check from.
-	 * @param homeTown Players town
-	 * @return the closest distance to another towns nearest plot.
-	 */
-	public int getMinDistanceFromOtherTownsPlots(Coord key, Town homeTown) {
-
-		double min = Integer.MAX_VALUE;
-		for (Town town : getTowns())
-			try {
-				if (homeTown != null)
-					if (homeTown.getHomeBlock().equals(town.getHomeBlock()))
-						continue;
-				for (TownBlock b : town.getTownBlocks()) {
-					if (!b.getWorld().equals(this)) continue;
-
-					Coord townCoord = b.getCoord();
-					
-					if (key.equals(townCoord)) continue;
-					
-					double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2) + Math.pow(townCoord.getZ() - key.getZ(), 2));
-					if (dist < min)
-						min = dist;
-				}
-			} catch (TownyException e) {
-			}
-
-		return (int) Math.ceil(min);
-	}
-	
-	/**
-	 * Returns the closest town from a given coord (key).
-	 * @param key - Coord
-	 * @param nearestTown - Closest town to the given coord.
-	 * @return the nearestTown
-	 */
-	public Town getClosestTownFromCoord(Coord key, Town nearestTown) {
-		
-		double min = Integer.MAX_VALUE;
-		for (Town town : getTowns()) {
-			for (TownBlock b : town.getTownBlocks()) {
-				if (!b.getWorld().equals(this)) continue;
-				
-				Coord townCoord = b.getCoord();
-				double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2) + Math.pow(townCoord.getZ() - key.getZ(), 2));
-				if (dist < min) {
-					min = dist;
-					nearestTown = town;
-				}						
-			}		
-		}		
-		return (nearestTown);		
-	}
-	
-	/**
-	 * Returns the closest town with a nation from a given coord (key).
-	 * 
-	 * @param key - Coord.
-	 * @param nearestTown - Closest town to given coord.
-	 * @return the nearest town belonging to a nation.   
-	 */
-	public Town getClosestTownWithNationFromCoord(Coord key, Town nearestTown) {
-		
-		double min = Integer.MAX_VALUE;
-		for (Town town : getTowns()) {
-			if (!town.hasNation()) continue;
-			for (TownBlock b : town.getTownBlocks()) {
-				if (!b.getWorld().equals(this)) continue;
-				
-				Coord townCoord = b.getCoord();
-				double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2) + Math.pow(townCoord.getZ() - key.getZ(), 2));
-				if (dist < min) {
-					min = dist;
-					nearestTown = town;
-				}						
-			}		
-		}		
-		return (nearestTown);		
-	}
-
-	public void addWarZone(Coord coord) {
-
-		if (!isWarZone(coord))
-			warZones.add(coord);
-	}
-
-	public void removeWarZone(Coord coord) {
-
-		warZones.remove(coord);
-	}
-
-	public boolean isWarZone(Coord coord) {
-
-		return warZones.contains(coord);
-	}
-
-	public void addMetaData(CustomDataField md) {
-		super.addMetaData(md);
-
-		TownyUniverse.getInstance().getDataSource().saveWorld(this);
-	}
-
-	public void removeMetaData(CustomDataField md) {
-		super.removeMetaData(md);
-
-		TownyUniverse.getInstance().getDataSource().saveWorld(this);
-	}
+public class TownyWorld extends TownyObject
+{
+    private List<Town> towns;
+    private boolean isClaimable;
+    private boolean isUsingPlotManagementDelete;
+    private boolean isUsingPlotManagementMayorDelete;
+    private boolean isUsingPlotManagementRevert;
+    private boolean isUsingPlotManagementWildRevert;
+    private long plotManagementRevertSpeed;
+    private long plotManagementWildRevertDelay;
+    private List<String> unclaimedZoneIgnoreBlockMaterials;
+    private List<String> plotManagementDeleteIds;
+    private List<String> plotManagementMayorDelete;
+    private List<String> plotManagementIgnoreIds;
+    private Boolean unclaimedZoneBuild;
+    private Boolean unclaimedZoneDestroy;
+    private Boolean unclaimedZoneSwitch;
+    private Boolean unclaimedZoneItemUse;
+    private String unclaimedZoneName;
+    private ConcurrentHashMap<Coord, TownBlock> townBlocks;
+    private List<Coord> warZones;
+    private List<String> entityExplosionProtection;
+    private boolean isUsingTowny;
+    private boolean isWarAllowed;
+    private boolean isPVP;
+    private boolean isForcePVP;
+    private boolean isFire;
+    private boolean isForceFire;
+    private boolean hasWorldMobs;
+    private boolean isForceTownMobs;
+    private boolean isExplosion;
+    private boolean isForceExpl;
+    private boolean isEndermanProtect;
+    private boolean isDisablePlayerTrample;
+    private boolean isDisableCreatureTrample;
+    
+    public TownyWorld(final String name) {
+        super(name);
+        this.towns = new ArrayList<Town>();
+        this.isClaimable = true;
+        this.isUsingPlotManagementDelete = TownySettings.isUsingPlotManagementDelete();
+        this.isUsingPlotManagementMayorDelete = TownySettings.isUsingPlotManagementMayorDelete();
+        this.isUsingPlotManagementRevert = TownySettings.isUsingPlotManagementRevert();
+        this.isUsingPlotManagementWildRevert = TownySettings.isUsingPlotManagementWildRegen();
+        this.plotManagementRevertSpeed = TownySettings.getPlotManagementSpeed();
+        this.plotManagementWildRevertDelay = TownySettings.getPlotManagementWildRegenDelay();
+        this.unclaimedZoneIgnoreBlockMaterials = null;
+        this.plotManagementDeleteIds = null;
+        this.plotManagementMayorDelete = null;
+        this.plotManagementIgnoreIds = null;
+        this.unclaimedZoneBuild = null;
+        this.unclaimedZoneDestroy = null;
+        this.unclaimedZoneSwitch = null;
+        this.unclaimedZoneItemUse = null;
+        this.unclaimedZoneName = null;
+        this.townBlocks = new ConcurrentHashMap<Coord, TownBlock>();
+        this.warZones = new ArrayList<Coord>();
+        this.entityExplosionProtection = null;
+        this.isUsingTowny = TownySettings.isUsingTowny();
+        this.isWarAllowed = TownySettings.isWarAllowed();
+        this.isPVP = TownySettings.isPvP();
+        this.isForcePVP = TownySettings.isForcingPvP();
+        this.isFire = TownySettings.isFire();
+        this.isForceFire = TownySettings.isForcingFire();
+        this.hasWorldMobs = TownySettings.isWorldMonstersOn();
+        this.isForceTownMobs = TownySettings.isForcingMonsters();
+        this.isExplosion = TownySettings.isExplosions();
+        this.isForceExpl = TownySettings.isForcingExplosions();
+        this.isEndermanProtect = TownySettings.getEndermanProtect();
+        this.isDisablePlayerTrample = TownySettings.isPlayerTramplingCropsDisabled();
+        this.isDisableCreatureTrample = TownySettings.isCreatureTramplingCropsDisabled();
+    }
+    
+    public List<Town> getTowns() {
+        return this.towns;
+    }
+    
+    public boolean hasTowns() {
+        return !this.towns.isEmpty();
+    }
+    
+    public boolean hasTown(final String name) {
+        for (final Town town : this.towns) {
+            if (town.getName().equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public boolean hasTown(final Town town) {
+        return this.towns.contains(town);
+    }
+    
+    public void addTown(final Town town) throws AlreadyRegisteredException {
+        if (this.hasTown(town)) {
+            throw new AlreadyRegisteredException();
+        }
+        this.towns.add(town);
+        town.setWorld(this);
+    }
+    
+    public TownBlock getTownBlock(final Coord coord) throws NotRegisteredException {
+        final TownBlock townBlock = this.townBlocks.get(coord);
+        if (townBlock == null) {
+            throw new NotRegisteredException();
+        }
+        return townBlock;
+    }
+    
+    public void newTownBlock(final int x, final int z) throws AlreadyRegisteredException {
+        this.newTownBlock(new Coord(x, z));
+    }
+    
+    public TownBlock newTownBlock(final Coord key) throws AlreadyRegisteredException {
+        if (this.hasTownBlock(key)) {
+            throw new AlreadyRegisteredException();
+        }
+        this.townBlocks.put(new Coord(key.getX(), key.getZ()), new TownBlock(key.getX(), key.getZ(), this));
+        return this.townBlocks.get(new Coord(key.getX(), key.getZ()));
+    }
+    
+    public boolean hasTownBlock(final Coord key) {
+        return this.townBlocks.containsKey(key);
+    }
+    
+    public TownBlock getTownBlock(final int x, final int z) throws NotRegisteredException {
+        return this.getTownBlock(new Coord(x, z));
+    }
+    
+    public List<TownBlock> getTownBlocks(final Town town) {
+        final List<TownBlock> out = new ArrayList<TownBlock>();
+        for (final TownBlock townBlock : town.getTownBlocks()) {
+            if (townBlock.getWorld() == this) {
+                out.add(townBlock);
+            }
+        }
+        return out;
+    }
+    
+    public Collection<TownBlock> getTownBlocks() {
+        return this.townBlocks.values();
+    }
+    
+    public void removeTown(final Town town) throws NotRegisteredException {
+        if (!this.hasTown(town)) {
+            throw new NotRegisteredException();
+        }
+        this.towns.remove(town);
+    }
+    
+    public void removeTownBlock(final TownBlock townBlock) {
+        if (this.hasTownBlock(townBlock.getCoord())) {
+            try {
+                if (townBlock.hasResident()) {
+                    townBlock.getResident().removeTownBlock(townBlock);
+                }
+            }
+            catch (NotRegisteredException ex) {}
+            try {
+                if (townBlock.hasTown()) {
+                    townBlock.getTown().removeTownBlock(townBlock);
+                }
+            }
+            catch (NotRegisteredException ex2) {}
+            this.removeTownBlock(townBlock.getCoord());
+        }
+    }
+    
+    public void removeTownBlocks(final List<TownBlock> townBlocks) {
+        for (final TownBlock townBlock : new ArrayList<TownBlock>(townBlocks)) {
+            this.removeTownBlock(townBlock);
+        }
+    }
+    
+    public void removeTownBlock(final Coord coord) {
+        this.townBlocks.remove(coord);
+    }
+    
+    @Override
+    public List<String> getTreeString(final int depth) {
+        final List<String> out = new ArrayList<String>();
+        out.add(this.getTreeDepth(depth) + "World (" + this.getName() + ")");
+        out.add(this.getTreeDepth(depth + 1) + "TownBlocks (" + this.getTownBlocks().size() + "): ");
+        return out;
+    }
+    
+    public void setWarAllowed(final boolean isWarAllowed) {
+        this.isWarAllowed = isWarAllowed;
+    }
+    
+    public boolean isWarAllowed() {
+        return this.isWarAllowed;
+    }
+    
+    public void setPVP(final boolean isPVP) {
+        this.isPVP = isPVP;
+    }
+    
+    public boolean isPVP() {
+        return this.isPVP;
+    }
+    
+    public void setForcePVP(final boolean isPVP) {
+        this.isForcePVP = isPVP;
+    }
+    
+    public boolean isForcePVP() {
+        return this.isForcePVP;
+    }
+    
+    public void setExpl(final boolean isExpl) {
+        this.isExplosion = isExpl;
+    }
+    
+    public boolean isExpl() {
+        return this.isExplosion;
+    }
+    
+    public void setForceExpl(final boolean isExpl) {
+        this.isForceExpl = isExpl;
+    }
+    
+    public boolean isForceExpl() {
+        return this.isForceExpl;
+    }
+    
+    public void setFire(final boolean isFire) {
+        this.isFire = isFire;
+    }
+    
+    public boolean isFire() {
+        return this.isFire;
+    }
+    
+    public void setForceFire(final boolean isFire) {
+        this.isForceFire = isFire;
+    }
+    
+    public boolean isForceFire() {
+        return this.isForceFire;
+    }
+    
+    public void setDisablePlayerTrample(final boolean isDisablePlayerTrample) {
+        this.isDisablePlayerTrample = isDisablePlayerTrample;
+    }
+    
+    public boolean isDisablePlayerTrample() {
+        return this.isDisablePlayerTrample;
+    }
+    
+    public void setDisableCreatureTrample(final boolean isDisableCreatureTrample) {
+        this.isDisableCreatureTrample = isDisableCreatureTrample;
+    }
+    
+    public boolean isDisableCreatureTrample() {
+        return this.isDisableCreatureTrample;
+    }
+    
+    public void setWorldMobs(final boolean hasMobs) {
+        this.hasWorldMobs = hasMobs;
+    }
+    
+    public boolean hasWorldMobs() {
+        return this.hasWorldMobs;
+    }
+    
+    public void setForceTownMobs(final boolean setMobs) {
+        this.isForceTownMobs = setMobs;
+    }
+    
+    public boolean isForceTownMobs() {
+        return this.isForceTownMobs;
+    }
+    
+    public void setEndermanProtect(final boolean setEnder) {
+        this.isEndermanProtect = setEnder;
+    }
+    
+    public boolean isEndermanProtect() {
+        return this.isEndermanProtect;
+    }
+    
+    public void setClaimable(final boolean isClaimable) {
+        this.isClaimable = isClaimable;
+    }
+    
+    public boolean isClaimable() {
+        return this.isUsingTowny() && this.isClaimable;
+    }
+    
+    public void setUsingDefault() {
+        this.setUnclaimedZoneBuild(null);
+        this.setUnclaimedZoneDestroy(null);
+        this.setUnclaimedZoneSwitch(null);
+        this.setUnclaimedZoneItemUse(null);
+        this.setUnclaimedZoneIgnore(null);
+        this.setUnclaimedZoneName(null);
+    }
+    
+    public void setUsingPlotManagementDelete(final boolean using) {
+        this.isUsingPlotManagementDelete = using;
+    }
+    
+    public boolean isUsingPlotManagementDelete() {
+        return this.isUsingPlotManagementDelete;
+    }
+    
+    public void setUsingPlotManagementMayorDelete(final boolean using) {
+        this.isUsingPlotManagementMayorDelete = using;
+    }
+    
+    public boolean isUsingPlotManagementMayorDelete() {
+        return this.isUsingPlotManagementMayorDelete;
+    }
+    
+    public void setUsingPlotManagementRevert(final boolean using) {
+        this.isUsingPlotManagementRevert = using;
+    }
+    
+    public boolean isUsingPlotManagementRevert() {
+        return this.isUsingPlotManagementRevert;
+    }
+    
+    public List<String> getPlotManagementDeleteIds() {
+        if (this.plotManagementDeleteIds == null) {
+            return TownySettings.getPlotManagementDeleteIds();
+        }
+        return this.plotManagementDeleteIds;
+    }
+    
+    public boolean isPlotManagementDeleteIds(final String id) {
+        return this.getPlotManagementDeleteIds().contains(id);
+    }
+    
+    public void setPlotManagementDeleteIds(final List<String> plotManagementDeleteIds) {
+        this.plotManagementDeleteIds = plotManagementDeleteIds;
+    }
+    
+    public List<String> getPlotManagementMayorDelete() {
+        if (this.plotManagementMayorDelete == null) {
+            return TownySettings.getPlotManagementMayorDelete();
+        }
+        return this.plotManagementMayorDelete;
+    }
+    
+    public boolean isPlotManagementMayorDelete(final String material) {
+        return this.getPlotManagementMayorDelete().contains(material.toUpperCase());
+    }
+    
+    public void setPlotManagementMayorDelete(final List<String> plotManagementMayorDelete) {
+        this.plotManagementMayorDelete = plotManagementMayorDelete;
+    }
+    
+    public List<String> getPlotManagementIgnoreIds() {
+        if (this.plotManagementIgnoreIds == null) {
+            return TownySettings.getPlotManagementIgnoreIds();
+        }
+        return this.plotManagementIgnoreIds;
+    }
+    
+    public boolean isPlotManagementIgnoreIds(final Material mat) {
+        return this.getPlotManagementIgnoreIds().contains(mat.toString());
+    }
+    
+    @Deprecated
+    public boolean isPlotManagementIgnoreIds(final String id, final Byte data) {
+        return this.getPlotManagementIgnoreIds().contains(id + ":" + Byte.toString(data)) || this.getPlotManagementIgnoreIds().contains(id);
+    }
+    
+    public void setPlotManagementIgnoreIds(final List<String> plotManagementIgnoreIds) {
+        this.plotManagementIgnoreIds = plotManagementIgnoreIds;
+    }
+    
+    public boolean isUsingPlotManagementWildRevert() {
+        return this.isUsingPlotManagementWildRevert;
+    }
+    
+    public void setUsingPlotManagementWildRevert(final boolean isUsingPlotManagementWildRevert) {
+        this.isUsingPlotManagementWildRevert = isUsingPlotManagementWildRevert;
+    }
+    
+    public long getPlotManagementRevertSpeed() {
+        return this.plotManagementRevertSpeed;
+    }
+    
+    public void setPlotManagementRevertSpeed(final long plotManagementRevertSpeed) {
+        this.plotManagementRevertSpeed = plotManagementRevertSpeed;
+    }
+    
+    public long getPlotManagementWildRevertDelay() {
+        return this.plotManagementWildRevertDelay;
+    }
+    
+    public void setPlotManagementWildRevertDelay(final long plotManagementWildRevertDelay) {
+        this.plotManagementWildRevertDelay = plotManagementWildRevertDelay;
+    }
+    
+    public void setPlotManagementWildRevertEntities(final List<String> entities) {
+        this.entityExplosionProtection = new ArrayList<String>();
+        for (final String mob : entities) {
+            if (!mob.equals("")) {
+                this.entityExplosionProtection.add(mob.toLowerCase());
+            }
+        }
+    }
+    
+    public List<String> getPlotManagementWildRevertEntities() {
+        if (this.entityExplosionProtection == null) {
+            this.setPlotManagementWildRevertEntities(TownySettings.getWildExplosionProtectionEntities());
+        }
+        return this.entityExplosionProtection;
+    }
+    
+    public boolean isProtectingExplosionEntity(final Entity entity) {
+        if (this.entityExplosionProtection == null) {
+            this.setPlotManagementWildRevertEntities(TownySettings.getWildExplosionProtectionEntities());
+        }
+        return this.entityExplosionProtection.contains(entity.getType().getEntityClass().getSimpleName().toLowerCase());
+    }
+    
+    public void setUnclaimedZoneIgnore(final List<String> unclaimedZoneIgnoreIds) {
+        this.unclaimedZoneIgnoreBlockMaterials = unclaimedZoneIgnoreIds;
+    }
+    
+    public List<String> getUnclaimedZoneIgnoreMaterials() {
+        if (this.unclaimedZoneIgnoreBlockMaterials == null) {
+            return TownySettings.getUnclaimedZoneIgnoreMaterials();
+        }
+        return this.unclaimedZoneIgnoreBlockMaterials;
+    }
+    
+    public boolean isUnclaimedZoneIgnoreMaterial(final Material mat) {
+        return this.getUnclaimedZoneIgnoreMaterials().contains(mat);
+    }
+    
+    public boolean getUnclaimedZonePerm(final TownyPermission.ActionType type) {
+        switch (type) {
+            case BUILD: {
+                return this.getUnclaimedZoneBuild();
+            }
+            case DESTROY: {
+                return this.getUnclaimedZoneDestroy();
+            }
+            case SWITCH: {
+                return this.getUnclaimedZoneSwitch();
+            }
+            case ITEM_USE: {
+                return this.getUnclaimedZoneItemUse();
+            }
+            default: {
+                throw new UnsupportedOperationException();
+            }
+        }
+    }
+    
+    public Boolean getUnclaimedZoneBuild() {
+        if (this.unclaimedZoneBuild == null) {
+            return TownySettings.getUnclaimedZoneBuildRights();
+        }
+        return this.unclaimedZoneBuild;
+    }
+    
+    public void setUnclaimedZoneBuild(final Boolean unclaimedZoneBuild) {
+        this.unclaimedZoneBuild = unclaimedZoneBuild;
+    }
+    
+    public Boolean getUnclaimedZoneDestroy() {
+        if (this.unclaimedZoneDestroy == null) {
+            return TownySettings.getUnclaimedZoneDestroyRights();
+        }
+        return this.unclaimedZoneDestroy;
+    }
+    
+    public void setUnclaimedZoneDestroy(final Boolean unclaimedZoneDestroy) {
+        this.unclaimedZoneDestroy = unclaimedZoneDestroy;
+    }
+    
+    public Boolean getUnclaimedZoneSwitch() {
+        if (this.unclaimedZoneSwitch == null) {
+            return TownySettings.getUnclaimedZoneSwitchRights();
+        }
+        return this.unclaimedZoneSwitch;
+    }
+    
+    public void setUnclaimedZoneSwitch(final Boolean unclaimedZoneSwitch) {
+        this.unclaimedZoneSwitch = unclaimedZoneSwitch;
+    }
+    
+    public String getUnclaimedZoneName() {
+        if (this.unclaimedZoneName == null) {
+            return TownySettings.getUnclaimedZoneName();
+        }
+        return this.unclaimedZoneName;
+    }
+    
+    public void setUnclaimedZoneName(final String unclaimedZoneName) {
+        this.unclaimedZoneName = unclaimedZoneName;
+    }
+    
+    public void setUsingTowny(final boolean isUsingTowny) {
+        this.isUsingTowny = isUsingTowny;
+    }
+    
+    public boolean isUsingTowny() {
+        return this.isUsingTowny;
+    }
+    
+    public void setUnclaimedZoneItemUse(final Boolean unclaimedZoneItemUse) {
+        this.unclaimedZoneItemUse = unclaimedZoneItemUse;
+    }
+    
+    public Boolean getUnclaimedZoneItemUse() {
+        if (this.unclaimedZoneItemUse == null) {
+            return TownySettings.getUnclaimedZoneItemUseRights();
+        }
+        return this.unclaimedZoneItemUse;
+    }
+    
+    public int getMinDistanceFromOtherTowns(final Coord key) {
+        return this.getMinDistanceFromOtherTowns(key, null);
+    }
+    
+    public int getMinDistanceFromOtherTowns(final Coord key, final Town homeTown) {
+        double min = 2.147483647E9;
+        for (final Town town : this.getTowns()) {
+            try {
+                final Coord townCoord = town.getHomeBlock().getCoord();
+                if (homeTown != null && homeTown.getHomeBlock().equals(town.getHomeBlock())) {
+                    continue;
+                }
+                if (!town.getWorld().equals(this)) {
+                    continue;
+                }
+                final double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2.0) + Math.pow(townCoord.getZ() - key.getZ(), 2.0));
+                if (dist >= min) {
+                    continue;
+                }
+                min = dist;
+            }
+            catch (TownyException ex) {}
+        }
+        return (int)Math.ceil(min);
+    }
+    
+    public int getMinDistanceFromOtherTownsPlots(final Coord key) {
+        return this.getMinDistanceFromOtherTownsPlots(key, null);
+    }
+    
+    public int getMinDistanceFromOtherTownsPlots(final Coord key, final Town homeTown) {
+        double min = 2.147483647E9;
+        for (final Town town : this.getTowns()) {
+            try {
+                if (homeTown != null && homeTown.getHomeBlock().equals(town.getHomeBlock())) {
+                    continue;
+                }
+                for (final TownBlock b : town.getTownBlocks()) {
+                    if (!b.getWorld().equals(this)) {
+                        continue;
+                    }
+                    final Coord townCoord = b.getCoord();
+                    if (key.equals(townCoord)) {
+                        continue;
+                    }
+                    final double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2.0) + Math.pow(townCoord.getZ() - key.getZ(), 2.0));
+                    if (dist >= min) {
+                        continue;
+                    }
+                    min = dist;
+                }
+            }
+            catch (TownyException ex) {}
+        }
+        return (int)Math.ceil(min);
+    }
+    
+    public Town getClosestTownFromCoord(final Coord key, Town nearestTown) {
+        double min = 2.147483647E9;
+        for (final Town town : this.getTowns()) {
+            for (final TownBlock b : town.getTownBlocks()) {
+                if (!b.getWorld().equals(this)) {
+                    continue;
+                }
+                final Coord townCoord = b.getCoord();
+                final double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2.0) + Math.pow(townCoord.getZ() - key.getZ(), 2.0));
+                if (dist >= min) {
+                    continue;
+                }
+                min = dist;
+                nearestTown = town;
+            }
+        }
+        return nearestTown;
+    }
+    
+    public Town getClosestTownWithNationFromCoord(final Coord key, Town nearestTown) {
+        double min = 2.147483647E9;
+        for (final Town town : this.getTowns()) {
+            if (!town.hasNation()) {
+                continue;
+            }
+            for (final TownBlock b : town.getTownBlocks()) {
+                if (!b.getWorld().equals(this)) {
+                    continue;
+                }
+                final Coord townCoord = b.getCoord();
+                final double dist = Math.sqrt(Math.pow(townCoord.getX() - key.getX(), 2.0) + Math.pow(townCoord.getZ() - key.getZ(), 2.0));
+                if (dist >= min) {
+                    continue;
+                }
+                min = dist;
+                nearestTown = town;
+            }
+        }
+        return nearestTown;
+    }
+    
+    public void addWarZone(final Coord coord) {
+        if (!this.isWarZone(coord)) {
+            this.warZones.add(coord);
+        }
+    }
+    
+    public void removeWarZone(final Coord coord) {
+        this.warZones.remove(coord);
+    }
+    
+    public boolean isWarZone(final Coord coord) {
+        return this.warZones.contains(coord);
+    }
+    
+    @Override
+    public void addMetaData(final CustomDataField md) {
+        super.addMetaData(md);
+        TownyUniverse.getInstance().getDataSource().saveWorld(this);
+    }
+    
+    @Override
+    public void removeMetaData(final CustomDataField md) {
+        super.removeMetaData(md);
+        TownyUniverse.getInstance().getDataSource().saveWorld(this);
+    }
 }

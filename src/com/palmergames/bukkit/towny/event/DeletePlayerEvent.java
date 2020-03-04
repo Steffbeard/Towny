@@ -1,32 +1,36 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny.event;
 
 import org.bukkit.Bukkit;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Event;
 
-public class DeletePlayerEvent extends Event {
-    private static final HandlerList handlers = new HandlerList();
-
+public class DeletePlayerEvent extends Event
+{
+    private static final HandlerList handlers;
     private String playerName;
-
-    @Override
+    
     public HandlerList getHandlers() {
-        return handlers;
+        return DeletePlayerEvent.handlers;
     }
-
+    
     public static HandlerList getHandlerList() {
-        return handlers;
+        return DeletePlayerEvent.handlers;
     }
-
-    public DeletePlayerEvent(String player) {
+    
+    public DeletePlayerEvent(final String player) {
         super(!Bukkit.getServer().isPrimaryThread());
         this.playerName = player;
     }
-
-    /**
-     * @return the deleted player's name.
-     */
+    
     public String getPlayerName() {
-        return playerName;
+        return this.playerName;
+    }
+    
+    static {
+        handlers = new HandlerList();
     }
 }

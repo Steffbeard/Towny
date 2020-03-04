@@ -1,170 +1,175 @@
+// 
+// Decompiled by Procyon v0.5.36
+// 
+
 package com.palmergames.bukkit.towny;
 
-import org.bukkit.entity.Player;
-
+import com.palmergames.bukkit.towny.object.Nation;
+import com.palmergames.bukkit.towny.object.TownBlock;
+import com.palmergames.bukkit.towny.object.TownyWorld;
+import com.palmergames.bukkit.towny.object.Resident;
+import com.palmergames.bukkit.util.ChatTools;
+import com.palmergames.bukkit.towny.object.TownBlockType;
+import com.palmergames.bukkit.towny.object.Coord;
 import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.exceptions.TownyException;
-import com.palmergames.bukkit.towny.object.Coord;
-import com.palmergames.bukkit.towny.object.Nation;
-import com.palmergames.bukkit.towny.object.Resident;
-import com.palmergames.bukkit.towny.object.TownBlock;
-import com.palmergames.bukkit.towny.object.TownBlockType;
-import com.palmergames.bukkit.towny.object.TownyWorld;
-import com.palmergames.bukkit.util.ChatTools;
-import com.palmergames.bukkit.util.Colors;
 import com.palmergames.bukkit.util.Compass;
+import org.bukkit.entity.Player;
 
-public class TownyAsciiMap {
-
-	public static final int lineWidth = 27;
-	public static final int halfLineWidth = lineWidth / 2;
-	public static final String[] help = {
-			"  " + Colors.Gray + "-" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_unclaimed"),
-			"  " + Colors.White + "+" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_claimed"),
-			"  " + Colors.White + "$" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_forsale"),
-			"  " + Colors.LightGreen + "+" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_yourtown"),
-			"  " + Colors.Yellow + "+" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_yourplot"),
-			"  " + Colors.Green + "+" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_ally"),
-			"  " + Colors.Red + "+" + Colors.LightGray + " = " + TownySettings.getLangString("towny_map_enemy")};
-
-	public static String[] generateCompass(Player player) {
-
-		Compass.Point dir = Compass.getCompassPointForDirection(player.getLocation().getYaw());
-
-		return new String[] {
-				Colors.Black + "  -----  ",
-				Colors.Black + "  -" + (dir == Compass.Point.NW ? Colors.Gold + "\\" : "-") + (dir == Compass.Point.N ? Colors.Gold : Colors.White) + "N" + (dir == Compass.Point.NE ? Colors.Gold + "/" + Colors.Black : Colors.Black + "-") + "-  ",
-				Colors.Black + "  -" + (dir == Compass.Point.W ? Colors.Gold + "W" : Colors.White + "W") + Colors.LightGray + "+" + (dir == Compass.Point.E ? Colors.Gold : Colors.White) + "E" + Colors.Black + "-  ",
-				Colors.Black + "  -" + (dir == Compass.Point.SW ? Colors.Gold + "/" : "-") + (dir == Compass.Point.S ? Colors.Gold : Colors.White) + "S" + (dir == Compass.Point.SE ? Colors.Gold + "\\" + Colors.Black : Colors.Black + "-") + "-  " };
-	}
-
-	public static void generateAndSend(Towny plugin, Player player, int lineHeight) {
-
-		// Collect Sample Data
-		boolean hasTown = false;
-		Resident resident;
-		TownyUniverse townyUniverse = TownyUniverse.getInstance();
-		try {
-			resident = townyUniverse.getDataSource().getResident(player.getName());
-			if (resident.hasTown())
-				hasTown = true;
-		} catch (TownyException x) {
-			TownyMessaging.sendErrorMsg(player, x.getMessage());
-			return;
-		}
-
-		TownyWorld world;
-		try {
-			world = townyUniverse.getDataSource().getWorld(player.getWorld().getName());
-		} catch (NotRegisteredException e1) {
-			TownyMessaging.sendErrorMsg(player, "You are not in a registered world.");
-			return;
-		}
-		if (!world.isUsingTowny()) {
-			TownyMessaging.sendErrorMsg(player, "This world is not using towny.");
-			return;
-		}
-		Coord pos = Coord.parseCoord(plugin.getCache(player).getLastLocation());
-
-		// Generate Map 
-		int halfLineHeight = lineHeight / 2;
-		String[][] townyMap = new String[lineWidth][lineHeight];
-		int x, y = 0;
-		for (int tby = pos.getX() + (lineWidth - halfLineWidth - 1); tby >= pos.getX() - halfLineWidth; tby--) {
-			x = 0;
-			for (int tbx = pos.getZ() - halfLineHeight; tbx <= pos.getZ() + (lineHeight - halfLineHeight - 1); tbx++) {
-				try {
-					TownBlock townblock = world.getTownBlock(tby, tbx);
-					//TODO: possibly claim outside of towns
-					if (!townblock.hasTown())
-						throw new TownyException();
-					if (x == halfLineHeight && y == halfLineWidth)
-						// location
-						townyMap[y][x] = Colors.Gold;
-					else if (hasTown) {
-						if (resident.getTown() == townblock.getTown()) {
-							// own town
-							townyMap[y][x] = Colors.LightGreen;
-							try {
-								if (resident == townblock.getResident())
-									//own plot
-									townyMap[y][x] = Colors.Yellow;
-							} catch (NotRegisteredException e) {
-							}
-						} else if (resident.hasNation()) {
-							if (resident.getTown().getNation().hasTown(townblock.getTown()))
-								// towns
-								townyMap[y][x] = Colors.Green;
-							else if (townblock.getTown().hasNation()) {
-								Nation nation = resident.getTown().getNation();
-								if (nation.hasAlly(townblock.getTown().getNation()))
-									townyMap[y][x] = Colors.Green;
-								else if (nation.hasEnemy(townblock.getTown().getNation()))
-									// towns
-									townyMap[y][x] = Colors.Red;
-								else
-									townyMap[y][x] = Colors.White;
-							} else
-								townyMap[y][x] = Colors.White;
-						} else
-							townyMap[y][x] = Colors.White;
-					} else
-						townyMap[y][x] = Colors.White;
-
-					// Registered town block
-					if (townblock.getPlotPrice() != -1) {
-						// override the colour if it's a shop plot for sale
-						if (townblock.getType().equals(TownBlockType.COMMERCIAL))
-							townyMap[y][x] = Colors.Blue;
-						townyMap[y][x] += "$";
-					} else if (townblock.isHomeBlock())
-						townyMap[y][x] += "H";
-					else
-						townyMap[y][x] += townblock.getType().getAsciiMapKey();
-				} catch (TownyException e) {
-					if (x == halfLineHeight && y == halfLineWidth)
-						townyMap[y][x] = Colors.Gold;
-					else
-						townyMap[y][x] = Colors.Gray;
-
-					// Unregistered town block
-					townyMap[y][x] += "-";
-				}
-				x++;
-			}
-			y++;
-		}
-
-		String[] compass = generateCompass(player);
-
-		// Output
-		player.sendMessage(ChatTools.formatTitle(TownySettings.getLangString("towny_map_header") + Colors.White + "(" + pos.toString() + ")"));
-		String line;
-		int lineCount = 0;
-		// Variables have been rotated to fit N/S/E/W properly
-		for (int my = 0; my < lineHeight; my++) {
-			line = compass[0];
-			if (lineCount < compass.length)
-				line = compass[lineCount];
-
-			for (int mx = lineWidth - 1; mx >= 0; mx--)
-				line += townyMap[mx][my];
-
-			if (lineCount < help.length)
-				line += help[lineCount];
-
-			player.sendMessage(line);
-			lineCount++;
-		}
-
-		// Current town block data
-		try {
-			TownBlock townblock = world.getTownBlock(pos);
-			TownyMessaging.sendMsg(player, (TownySettings.getLangString("town_sing") + ": " + (townblock.hasTown() ? townblock.getTown().getName() : TownySettings.getLangString("status_no_town")) + " : " + TownySettings.getLangString("owner_status") + ": " + (townblock.hasResident() ? townblock.getResident().getName() : TownySettings.getLangString("status_no_town"))));
-		} catch (TownyException e) {
-			//plugin.sendErrorMsg(player, e.getError());
-			// Send a blank line instead of an error, to keep the map position tidy.
-			player.sendMessage("");
-		}
-	}
+public class TownyAsciiMap
+{
+    public static final int lineWidth = 27;
+    public static final int halfLineWidth = 13;
+    public static final String[] help;
+    
+    public static String[] generateCompass(final Player player) {
+        final Compass.Point dir = Compass.getCompassPointForDirection(player.getLocation().getYaw());
+        return new String[] { "§0  -----  ", "§0  -" + ((dir == Compass.Point.NW) ? "§6\\" : "-") + ((dir == Compass.Point.N) ? "§6" : "§f") + "N" + ((dir == Compass.Point.NE) ? "§6/§0" : "§0-") + "-  ", "§0  -" + ((dir == Compass.Point.W) ? "§6W" : "§fW") + "§7" + "+" + ((dir == Compass.Point.E) ? "§6" : "§f") + "E" + "§0" + "-  ", "§0  -" + ((dir == Compass.Point.SW) ? "§6/" : "-") + ((dir == Compass.Point.S) ? "§6" : "§f") + "S" + ((dir == Compass.Point.SE) ? "§6\\§0" : "§0-") + "-  " };
+    }
+    
+    public static void generateAndSend(final Towny plugin, final Player player, final int lineHeight) {
+        boolean hasTown = false;
+        final TownyUniverse townyUniverse = TownyUniverse.getInstance();
+        Resident resident;
+        try {
+            resident = townyUniverse.getDataSource().getResident(player.getName());
+            if (resident.hasTown()) {
+                hasTown = true;
+            }
+        }
+        catch (TownyException x) {
+            TownyMessaging.sendErrorMsg(player, x.getMessage());
+            return;
+        }
+        TownyWorld world;
+        try {
+            world = townyUniverse.getDataSource().getWorld(player.getWorld().getName());
+        }
+        catch (NotRegisteredException e1) {
+            TownyMessaging.sendErrorMsg(player, "You are not in a registered world.");
+            return;
+        }
+        if (!world.isUsingTowny()) {
+            TownyMessaging.sendErrorMsg(player, "This world is not using towny.");
+            return;
+        }
+        final Coord pos = Coord.parseCoord(plugin.getCache(player).getLastLocation());
+        final int halfLineHeight = lineHeight / 2;
+        final String[][] townyMap = new String[27][lineHeight];
+        int y = 0;
+        for (int tby = pos.getX() + 13; tby >= pos.getX() - 13; --tby) {
+            int x2 = 0;
+            for (int tbx = pos.getZ() - halfLineHeight; tbx <= pos.getZ() + (lineHeight - halfLineHeight - 1); ++tbx) {
+                try {
+                    final TownBlock townblock = world.getTownBlock(tby, tbx);
+                    if (!townblock.hasTown()) {
+                        throw new TownyException();
+                    }
+                    if (x2 == halfLineHeight && y == 13) {
+                        townyMap[y][x2] = "§6";
+                    }
+                    else if (hasTown) {
+                        if (resident.getTown() == townblock.getTown()) {
+                            townyMap[y][x2] = "§a";
+                            try {
+                                if (resident == townblock.getResident()) {
+                                    townyMap[y][x2] = "§e";
+                                }
+                            }
+                            catch (NotRegisteredException ex) {}
+                        }
+                        else if (resident.hasNation()) {
+                            if (resident.getTown().getNation().hasTown(townblock.getTown())) {
+                                townyMap[y][x2] = "§2";
+                            }
+                            else if (townblock.getTown().hasNation()) {
+                                final Nation nation = resident.getTown().getNation();
+                                if (nation.hasAlly(townblock.getTown().getNation())) {
+                                    townyMap[y][x2] = "§2";
+                                }
+                                else if (nation.hasEnemy(townblock.getTown().getNation())) {
+                                    townyMap[y][x2] = "§4";
+                                }
+                                else {
+                                    townyMap[y][x2] = "§f";
+                                }
+                            }
+                            else {
+                                townyMap[y][x2] = "§f";
+                            }
+                        }
+                        else {
+                            townyMap[y][x2] = "§f";
+                        }
+                    }
+                    else {
+                        townyMap[y][x2] = "§f";
+                    }
+                    if (townblock.getPlotPrice() != -1.0) {
+                        if (townblock.getType().equals(TownBlockType.COMMERCIAL)) {
+                            townyMap[y][x2] = "§3";
+                        }
+                        final StringBuilder sb = new StringBuilder();
+                        final String[] array = townyMap[y];
+                        final int n = x2;
+                        array[n] = sb.append(array[n]).append("$").toString();
+                    }
+                    else if (townblock.isHomeBlock()) {
+                        final StringBuilder sb2 = new StringBuilder();
+                        final String[] array2 = townyMap[y];
+                        final int n2 = x2;
+                        array2[n2] = sb2.append(array2[n2]).append("H").toString();
+                    }
+                    else {
+                        final StringBuilder sb3 = new StringBuilder();
+                        final String[] array3 = townyMap[y];
+                        final int n3 = x2;
+                        array3[n3] = sb3.append(array3[n3]).append(townblock.getType().getAsciiMapKey()).toString();
+                    }
+                }
+                catch (TownyException e2) {
+                    if (x2 == halfLineHeight && y == 13) {
+                        townyMap[y][x2] = "§6";
+                    }
+                    else {
+                        townyMap[y][x2] = "§8";
+                    }
+                    final StringBuilder sb4 = new StringBuilder();
+                    final String[] array4 = townyMap[y];
+                    final int n4 = x2;
+                    array4[n4] = sb4.append(array4[n4]).append("-").toString();
+                }
+                ++x2;
+            }
+            ++y;
+        }
+        final String[] compass = generateCompass(player);
+        player.sendMessage(ChatTools.formatTitle(TownySettings.getLangString("towny_map_header") + "§f" + "(" + pos.toString() + ")"));
+        int lineCount = 0;
+        for (int my = 0; my < lineHeight; ++my) {
+            String line = compass[0];
+            if (lineCount < compass.length) {
+                line = compass[lineCount];
+            }
+            for (int mx = 26; mx >= 0; --mx) {
+                line += townyMap[mx][my];
+            }
+            if (lineCount < TownyAsciiMap.help.length) {
+                line += TownyAsciiMap.help[lineCount];
+            }
+            player.sendMessage(line);
+            ++lineCount;
+        }
+        try {
+            final TownBlock townblock2 = world.getTownBlock(pos);
+            TownyMessaging.sendMsg(player, TownySettings.getLangString("town_sing") + ": " + (townblock2.hasTown() ? townblock2.getTown().getName() : TownySettings.getLangString("status_no_town")) + " : " + TownySettings.getLangString("owner_status") + ": " + (townblock2.hasResident() ? townblock2.getResident().getName() : TownySettings.getLangString("status_no_town")));
+        }
+        catch (TownyException e3) {
+            player.sendMessage("");
+        }
+    }
+    
+    static {
+        help = new String[] { "  §8-§7 = " + TownySettings.getLangString("towny_map_unclaimed"), "  §f+§7 = " + TownySettings.getLangString("towny_map_claimed"), "  §f$§7 = " + TownySettings.getLangString("towny_map_forsale"), "  §a+§7 = " + TownySettings.getLangString("towny_map_yourtown"), "  §e+§7 = " + TownySettings.getLangString("towny_map_yourplot"), "  §2+§7 = " + TownySettings.getLangString("towny_map_ally"), "  §4+§7 = " + TownySettings.getLangString("towny_map_enemy") };
+    }
 }
